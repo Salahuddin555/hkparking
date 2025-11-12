@@ -1,7 +1,8 @@
 "use client";
 
-import { Search } from "lucide-react";
+import { AlertTriangle, Loader2, Search } from "lucide-react";
 import type { ParkingSpace } from "@/data/spaces";
+import type { TransportFeedStatus } from "@/lib/use-parking-feed";
 
 const districtOptions = [
   { label: "All districts", value: "all" },
@@ -21,6 +22,8 @@ type Props = {
   onAvailabilityChange: (value: string) => void;
   spaces: ParkingSpace[];
   lastUpdated: Date;
+  feedStatus: TransportFeedStatus;
+  feedError?: string | null;
 };
 
 export function FilterBar({
@@ -34,6 +37,8 @@ export function FilterBar({
   onAvailabilityChange,
   spaces,
   lastUpdated,
+  feedStatus,
+  feedError,
 }: Props) {
   return (
     <div className="glass-panel p-6 flex flex-col gap-4">
@@ -90,8 +95,21 @@ export function FilterBar({
           />
           Only show EV-ready hosts
         </label>
-        <p>
-          {spaces.length} active hosts • Live refresh at {lastUpdated.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+        <p className="flex items-center gap-2">
+          {spaces.length} active hosts •{" "}
+          {feedStatus === "loading" && (
+            <span className="inline-flex items-center gap-1 text-slate-500">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Syncing with HKTD…
+            </span>
+          )}
+          {feedStatus === "ready" && `Live at ${lastUpdated.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`}
+          {feedStatus === "error" && (
+            <span className="inline-flex items-center gap-1 text-rose-500">
+              <AlertTriangle className="h-4 w-4" />
+              HKTD feed offline{feedError ? ` (${feedError})` : ""}
+            </span>
+          )}
         </p>
       </div>
     </div>

@@ -25,12 +25,25 @@ npm run lint
 npm run build
 ```
 
-## Deploying to Vercel
+## Supabase booking storage
 
-1. Push this repo to GitHub.
-2. In Vercel, import the project and select the `parking-hub` directory.
-3. Use the default build command `npm run build` and output directory `.next`.
-4. Set the framework preset to **Next.js**.
+1. Create a Supabase project and set the following environment variables (for local dev place them in `.env.local`):
 
-No environment variables are required for this demo dataset.
+   ```bash
+   SUPABASE_URL=...
+   SUPABASE_ANON_KEY=...
+   ```
+
+   You can copy `.env.local.example` and fill in your project values.
+
+2. Run the SQL migrations in `supabase/sql` inside the Supabase SQL editor or the CLI in order (they’re written to be idempotent):
+
+   ```bash
+   psql "$SUPABASE_DB_URL" -f supabase/sql/001_create_booking_requests.sql
+   psql "$SUPABASE_DB_URL" -f supabase/sql/002_booking_requests_policies.sql
+   ```
+
+   The scripts create the `booking_requests` table (with time-window, email, and plate constraints plus status tracking), enable row-level security, and add policies allowing public inserts while restricting reads/updates to the `service_role`.
+
+Once those steps are complete, the booking form will persist submissions into Supabase via the `/api/bookings` route.
 # hkparking

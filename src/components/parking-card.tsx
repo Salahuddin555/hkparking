@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { AvailabilityPill } from "./availability-pill";
 import type { ParkingSpace } from "@/data/spaces";
 import { BatteryCharging, Car, MapPin, Star } from "lucide-react";
@@ -55,9 +56,12 @@ export function ParkingCard({ space }: Props) {
             </div>
           </div>
         </div>
-        <button className="mt-2 inline-flex items-center justify-center rounded-2xl bg-slate-900 px-4 py-3 text-sm font-medium text-white shadow-lg shadow-slate-900/20">
+        <Link
+          href={`/book/${space.id}`}
+          className="mt-2 inline-flex items-center justify-center rounded-2xl bg-slate-900 px-4 py-3 text-sm font-medium text-white shadow-lg shadow-slate-900/20"
+        >
           Request to book
-        </button>
+        </Link>
       </div>
     </article>
   );

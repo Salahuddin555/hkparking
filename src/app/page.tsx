@@ -8,9 +8,10 @@ import { FilterBar } from "@/components/filter-bar";
 import { ParkingCard } from "@/components/parking-card";
 import { MapSection } from "@/components/map-section";
 import { MetricCard } from "@/components/metric-card";
+import { TrafficPanel } from "@/components/traffic-panel";
 
 export default function Home() {
-  const { spaces, lastUpdated, stats } = useParkingFeed(parkingSpaces);
+  const { spaces, lastUpdated, stats, traffic, status, error } = useParkingFeed(parkingSpaces);
   const [search, setSearch] = useState("");
   const [district, setDistrict] = useState("all");
   const [availability, setAvailability] = useState("all");
@@ -90,8 +91,12 @@ export default function Home() {
           onAvailabilityChange={setAvailability}
           spaces={spaces}
           lastUpdated={lastUpdated}
+          feedStatus={status}
+          feedError={error}
         />
       </section>
+
+      <TrafficPanel traffic={traffic} status={status} />
 
       <section className="grid gap-6">
         {filtered.map((space) => (
