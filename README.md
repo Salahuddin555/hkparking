@@ -46,4 +46,14 @@ npm run build
    The scripts create the `booking_requests` table (with time-window, email, and plate constraints plus status tracking), enable row-level security, and add policies allowing public inserts while restricting reads/updates to the `service_role`.
 
 Once those steps are complete, the booking form will persist submissions into Supabase via the `/api/bookings` route.
+
+### Connectivity check
+
+Use the provided script to verify your environment variables and Supabase policies:
+
+```bash
+SUPABASE_URL=... SUPABASE_ANON_KEY=... npm run check:supabase
+```
+
+This runs `src/scripts/check-supabase.ts`, which calls the booking API handler directly and records a test row (identified by `space_id = 'health-check'` and clear notes) that you can delete later inside Supabase.
 # hkparking

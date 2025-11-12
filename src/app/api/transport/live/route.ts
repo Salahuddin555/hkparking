@@ -251,34 +251,6 @@ const normalizeTrafficIncidents = (xmlPayload: string | null): { incidents: Traf
   return { incidents, timestamp };
 };
 
-const normalizeTrafficIncidents = (payload: any): { incidents: TrafficIncident[]; timestamp?: string } => {
-  const list = payload?.traffic_news ?? payload?.special_traffic_news ?? payload?.incidents ?? [];
-  if (!Array.isArray(list)) {
-    return { incidents: [], timestamp: payload?.data_timestamp };
-  }
-    const incidents: TrafficIncident[] = list.slice(0, 12).map((item: any) => {
-    const id = item?.id ?? item?.digest ?? randomUUID();
-    const category = (item?.category_en ?? item?.type_en ?? item?.category ?? "Traffic update").toUpperCase();
-    const location = item?.location_en ?? item?.road_name_en ?? item?.title_en ?? item?.summary_en ?? "Hong Kong";
-    const description = item?.content_en ?? item?.description_en ?? item?.message_en ?? "";
-    const region = toDistrict(item?.region_en, item?.district_en);
-    const severity = category.includes("ACCIDENT") || category.includes("CLOSURE") ? "critical" : category.includes("CONGESTION") ? "major" : "moderate";
-
-    return {
-      id: String(id),
-      title: item?.title_en ?? `${category} near ${location}`,
-      category,
-      region,
-      location,
-      description,
-      startTime: item?.publish_time ?? item?.event_start_time ?? payload?.data_timestamp,
-      severity: severity as TrafficIncident["severity"],
-    };
-  });
-
-  return { incidents, timestamp: payload?.data_timestamp };
-};
-
 
 const fetchJson = async <T>(url: string): Promise<T | null> => {
   const controller = new AbortController();
