@@ -8,9 +8,9 @@ import { BookingForm } from "@/components/booking-form";
 import { parkingSpaces } from "@/data/spaces";
 
 type BookingPageProps = {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 };
 
 const getSpace = (id: string) => parkingSpaces.find((space) => space.id === id);
@@ -19,8 +19,9 @@ export function generateStaticParams() {
   return parkingSpaces.map((space) => ({ id: space.id }));
 }
 
-export function generateMetadata({ params }: BookingPageProps): Metadata {
-  const space = getSpace(params.id);
+export async function generateMetadata({ params }: BookingPageProps): Promise<Metadata> {
+  const { id } = await params;
+  const space = getSpace(id);
   const title = space ? `Request ${space.title} • HarborPark` : "Request parking • HarborPark";
 
   return {
@@ -31,8 +32,9 @@ export function generateMetadata({ params }: BookingPageProps): Metadata {
   };
 }
 
-export default function BookingPage({ params }: BookingPageProps) {
-  const space = getSpace(params.id);
+export default async function BookingPage({ params }: BookingPageProps) {
+  const { id } = await params;
+  const space = getSpace(id);
 
   if (!space) {
     notFound();
