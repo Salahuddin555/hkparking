@@ -234,6 +234,7 @@ const normalizeTrafficIncidents = (xmlPayload: string | null): { incidents: Traf
     const region = inferRegionFromText(english);
     const startTime = parseReferenceDate(message?.ReferenceDate ?? message?.referenceDate);
     const category = cleanText(message?.IncidentRefNo) || (severity === "critical" ? "Critical incident" : severity === "major" ? "Major delay" : "Advisory");
+    const parsedStart = parseReferenceDate(message?.ReferenceDate ?? message?.referenceDate);
 
     return {
       id: String(message?.msgID ?? randomUUID()),
@@ -242,7 +243,7 @@ const normalizeTrafficIncidents = (xmlPayload: string | null): { incidents: Traf
       region,
       location: deriveLocation(english),
       description: english,
-      startTime,
+      startTime: parsedStart ?? undefined,
       severity,
     };
   });
