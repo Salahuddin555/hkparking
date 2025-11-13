@@ -19,3 +19,20 @@ body {
     @apply rounded-3xl bg-white/70 backdrop-blur shadow-card border border-white/40;
   }
 }
+
+@keyframes ticker-horizontal {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@layer utilities {
+  .animate-ticker {
+    animation-name: ticker-horizontal;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+  }
+}

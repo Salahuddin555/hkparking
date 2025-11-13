@@ -10,9 +10,9 @@ import { getParkingSpaceById } from "@/lib/parking-space-loader";
 import { TransportFeedUnavailableError } from "@/lib/transport-feed";
 
 type BookingPageProps = {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 };
 
 export function generateStaticParams() {
@@ -20,7 +20,7 @@ export function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: BookingPageProps): Promise<Metadata> {
-  const { id } = params;
+  const { id } = await params;
   try {
     const space = await getParkingSpaceById(id);
     const title = space ? `Request ${space.title} • HarborPark` : "Request parking • HarborPark";
@@ -43,7 +43,7 @@ export async function generateMetadata({ params }: BookingPageProps): Promise<Me
 }
 
 export default async function BookingPage({ params }: BookingPageProps) {
-  const { id } = params;
+  const { id } = await params;
   let transportError: TransportFeedUnavailableError | null = null;
   let space: Awaited<ReturnType<typeof getParkingSpaceById>>;
 
@@ -86,6 +86,10 @@ export default async function BookingPage({ params }: BookingPageProps) {
         </section>
       </main>
     );
+  }
+
+  if (!space) {
+    notFound();
   }
 
   return (

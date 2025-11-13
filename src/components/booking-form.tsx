@@ -12,6 +12,8 @@ type Props = {
 
 type FormStatus = "idle" | "submitting" | "success" | "error";
 
+const BOOKINGS_ENDPOINT = process.env.NEXT_PUBLIC_BOOKINGS_ENDPOINT ?? "/api/bookings";
+
 export function BookingForm({ spaceId, host, evFriendly, clearance }: Props) {
   const [status, setStatus] = useState<FormStatus>("idle");
   const [errorMessage, setErrorMessage] = useState("");
@@ -49,7 +51,7 @@ export function BookingForm({ spaceId, host, evFriendly, clearance }: Props) {
     setErrorMessage("");
 
     try {
-      const response = await fetch("/api/bookings", {
+      const response = await fetch(BOOKINGS_ENDPOINT, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -32,9 +32,12 @@ const formatTime = (iso?: string) => {
 };
 
 export function TrafficPanel({ traffic, status }: Props) {
-  const topAlerts = traffic.incidents.slice(0, 3);
-  const queue = traffic.incidents.slice(3, 12);
   const incidentTime = formatTime(traffic.sourceTimestamps.incidents);
+  const incidents = traffic.incidents.slice(0, 8);
+  const rows: TrafficIncident[][] = [];
+  for (let i = 0; i < incidents.length; i += 4) {
+    rows.push(incidents.slice(i, i + 4));
+  }
 
   return (
     <section className="glass-panel flex flex-col gap-6 p-6">
@@ -52,66 +55,53 @@ export function TrafficPanel({ traffic, status }: Props) {
         </div>
       </header>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <div className="rounded-2xl border border-white/60 bg-white/80 p-4 shadow-sm">
-          <div className="flex items-center justify-between">
-            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">Priority alerts</p>
-            <span className="flex items-center gap-1 text-xs text-slate-500">
-              <Clock className="h-3.5 w-3.5 text-brand-500" />
-              {incidentTime ? `Updated ${incidentTime}` : "Awaiting pulse"}
-            </span>
-          </div>
-          <div className="mt-4 flex flex-col gap-3">
-            {topAlerts.length === 0 && (
-              <p className="rounded-2xl border border-dashed border-slate-200 px-4 py-6 text-sm text-slate-500">
-                No active advisories from the Transport Department right now.
-              </p>
-            )}
-            {topAlerts.map((incident) => (
-              <article key={incident.id} className="rounded-2xl border border-slate-100 bg-white/90 px-4 py-3 shadow-sm">
-                <div className="flex items-center justify-between gap-2">
-                  <div>
-                    <p className="text-sm font-semibold text-slate-900">{incident.title}</p>
-                    <p className="text-xs text-slate-500">{incident.location ?? incident.region}</p>
-                  </div>
-                  <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-semibold ${severityBadge[incident.severity]}`}>
-                    <AlertTriangle className="h-3.5 w-3.5" />
-                    {severityLabel[incident.severity]}
-                  </span>
-                </div>
-                {incident.description && <p className="mt-2 text-xs text-slate-600">{incident.description}</p>}
-                {incident.startTime && (
-                  <p className="mt-2 text-[11px] uppercase tracking-[0.2em] text-slate-400">Issued {formatTime(incident.startTime) ?? incident.startTime}</p>
-                )}
-              </article>
-            ))}
-          </div>
-        </div>
+      <div className="flex items-center gap-2 text-xs text-slate-500">
+        <Clock className="h-3.5 w-3.5 text-brand-500" />
+        {incidentTime ? `Last updated ${incidentTime}` : "Awaiting pulse"}
+      </div>
 
-        <div className="rounded-2xl border border-white/60 bg-white/80 p-4 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">Citywide feed</p>
-          <div className="mt-4 flex flex-col divide-y divide-slate-100">
-            {queue.length === 0 && topAlerts.length > 0 && (
-              <p className="rounded-2xl border border-dashed border-slate-200 px-4 py-6 text-sm text-slate-500">
-                All HKTD updates are already in the priority list above.
-              </p>
-            )}
-            {queue.map((incident) => (
-              <article key={incident.id} className="py-3 first:pt-0 last:pb-0">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div>
-                    <p className="text-sm font-semibold text-slate-900">{incident.title}</p>
+      {rows.length === 0 && (
+        <p className="rounded-2xl border border-dashed border-slate-200 px-4 py-6 text-sm text-slate-500">
+          No active advisories from the Transport Department at the moment.
+        </p>
+      )}
+
+      <div className="flex flex-col gap-4">
+        {rows.map((row, rowIndex) => {
+          const duplicated = [...row, ...row];
+          const animationDuration = Math.max(row.length * 6, 18);
+          return (
+            <div key={`ticker-row-${rowIndex}`} className="relative overflow-hidden rounded-2xl border border-white/60 bg-white/80">
+              <div
+                className="flex min-w-max gap-4 py-4 animate-ticker"
+                style={{
+                  animationDuration: `${animationDuration}s`,
+                  animationDirection: rowIndex % 2 === 0 ? "normal" : "reverse",
+                }}
+              >
+                {duplicated.map((incident, idx) => (
+                  <article
+                    key={`${incident.id}-${idx}`}
+                    className="flex min-w-[220px] max-w-[260px] flex-col rounded-2xl border border-slate-100 bg-white/90 px-4 py-3 shadow-sm"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-semibold ${severityBadge[incident.severity]}`}>
+                        <AlertTriangle className="h-3.5 w-3.5" />
+                        {severityLabel[incident.severity]}
+                      </span>
+                      {incident.startTime && (
+                        <span className="text-[11px] uppercase tracking-[0.2em] text-slate-400">{formatTime(incident.startTime) ?? incident.startTime}</span>
+                      )}
+                    </div>
+                    <p className="mt-2 text-sm font-semibold text-slate-900">{incident.title}</p>
                     <p className="text-xs text-slate-500">{incident.location ?? incident.region}</p>
-                  </div>
-                  <span className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold ${severityBadge[incident.severity]}`}>
-                    {severityLabel[incident.severity]}
-                  </span>
-                </div>
-                {incident.description && <p className="mt-2 text-xs text-slate-600">{incident.description}</p>}
-              </article>
-            ))}
-          </div>
-        </div>
+                    {incident.description && <p className="mt-2 text-xs text-slate-600">{incident.description}</p>}
+                  </article>
+                ))}
+              </div>
+            </div>
+          );
+        })}
       </div>
     </section>
   );

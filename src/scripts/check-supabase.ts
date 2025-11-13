@@ -1,5 +1,3 @@
-import { POST } from "@/app/api/bookings/route";
-
 const payload = {
   spaceId: "health-check",
   fullName: "CLI Health Check",
@@ -12,8 +10,11 @@ const payload = {
   requiresEv: false,
 };
 
+const endpoint =
+  process.env.BOOKINGS_ENDPOINT ?? process.env.NEXT_PUBLIC_BOOKINGS_ENDPOINT ?? "http://localhost:8000";
+
 async function main() {
-  const request = new Request("http://localhost/api/bookings", {
+  const response = await fetch(endpoint, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -21,8 +22,11 @@ async function main() {
     body: JSON.stringify(payload),
   });
 
-  const response = await POST(request);
   const body = await response.json();
+
+  if (!response.ok) {
+    throw new Error(`Supabase check failed (${response.status}): ${body?.message ?? "Unknown error"}`);
+  }
 
   console.log("HTTP status:", response.status);
   console.log("Response body:", body);
