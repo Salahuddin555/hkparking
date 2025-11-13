@@ -6,38 +6,86 @@ import { ArrowLeft, Calendar, Car, Clock, Phone } from "lucide-react";
 import { AvailabilityPill } from "@/components/availability-pill";
 import { BookingForm } from "@/components/booking-form";
 import { parkingSpaces } from "@/data/spaces";
+import { getParkingSpaceById } from "@/lib/parking-space-loader";
+import { TransportFeedUnavailableError } from "@/lib/transport-feed";
 
 type BookingPageProps = {
-  params: Promise<{
+  params: {
     id: string;
-  }>;
+  };
 };
-
-const getSpace = (id: string) => parkingSpaces.find((space) => space.id === id);
 
 export function generateStaticParams() {
   return parkingSpaces.map((space) => ({ id: space.id }));
 }
 
 export async function generateMetadata({ params }: BookingPageProps): Promise<Metadata> {
-  const { id } = await params;
-  const space = getSpace(id);
-  const title = space ? `Request ${space.title} • HarborPark` : "Request parking • HarborPark";
+  const { id } = params;
+  try {
+    const space = await getParkingSpaceById(id);
+    const title = space ? `Request ${space.title} • HarborPark` : "Request parking • HarborPark";
 
-  return {
-    title,
-    description: space
-      ? `Send a booking request for ${space.title} hosted by ${space.host} in ${space.district}.`
-      : "Send a private parking booking request on HarborPark.",
-  };
+    return {
+      title,
+      description: space
+        ? `Send a booking request for ${space.title} hosted by ${space.host} in ${space.district}.`
+        : "Send a private parking booking request on HarborPark.",
+    };
+  } catch (error) {
+    if (error instanceof TransportFeedUnavailableError) {
+      return {
+        title: "Live parking temporarily unavailable • HarborPark",
+        description: "Real-time parking data is temporarily unavailable. Please try again shortly.",
+      };
+    }
+    throw error;
+  }
 }
 
 export default async function BookingPage({ params }: BookingPageProps) {
-  const { id } = await params;
-  const space = getSpace(id);
+  const { id } = params;
+  let transportError: TransportFeedUnavailableError | null = null;
+  let space: Awaited<ReturnType<typeof getParkingSpaceById>>;
 
-  if (!space) {
+  try {
+    space = await getParkingSpaceById(id);
+  } catch (error) {
+    if (error instanceof TransportFeedUnavailableError) {
+      transportError = error;
+      space = undefined;
+    } else {
+      throw error;
+    }
+  }
+
+  if (!space && !transportError) {
     notFound();
+  }
+
+  if (transportError) {
+    return (
+      <main className="mx-auto flex max-w-3xl flex-col gap-6 px-4 py-10">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-3 text-sm font-medium text-slate-600 transition hover:text-slate-900"
+        >
+          <ArrowLeft className="h-4 w-4 text-slate-400" />
+          Back to all spaces
+        </Link>
+        <section className="glass-panel flex flex-col gap-4 p-8 text-slate-700">
+          <h1 className="text-2xl font-semibold text-slate-900">Live parking data is unavailable</h1>
+          <p>
+            We can&apos;t load the latest details for this Transport Department space right now. The public feed is
+            temporarily unavailable, so booking information may be out of date.
+          </p>
+          <p>Please try again in a few minutes or pick another space while we reconnect.</p>
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+            <p className="font-medium text-slate-900">Technical details</p>
+            <p>{transportError.message}</p>
+          </div>
+        </section>
+      </main>
+    );
   }
 
   return (
